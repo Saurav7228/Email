@@ -1,0 +1,60 @@
+public class CustomEmail {
+    Public static void sendEmail(){
+        
+        Messaging.reserveSingleEmailCapacity(2);
+        Messaging.SingleEmailMessage mymail = new Messaging.SingleEmailMessage();
+        String[] toaddresses = new String[] {'saurav.bhambra@stackintelligence.com'};
+            //String[] ccaddresses = new String[] {'ShantanuBhardwaj@stackintelligence.com'};
+                
+                
+                mymail.setToAddresses(toAddresses);
+       // mymail.setCcAddresses(ccAddresses);
+        mymail.setReplyTo('support@example.com');
+        mymail.setSenderDisplayName('Salesforce Support');
+        mymail.setSubject('An email from Salesforce');
+        mymail.setPlainTextBody('This email has been sent through Apex');
+        mymail.setHtmlBody('p> This email has been sent through Apex</p>');
+        mymail = addAttachment(mymail);
+        
+        Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mymail });
+        
+        
+        
+        
+    }
+    
+    Public static Messaging.SingleEmailMessage addAttachment(Messaging.SingleEmailMessage mail){
+        
+        List<SObject> curAttachments = new List<SObject>();
+        Set<Id> cdIds = new Set<Id>();
+        cdIds.add('069Dn000002bp5BIAQ');
+        
+		
+	
+
+				for (ContentVersion cv : [SELECT Id, PathOnClient, VersionData, FileType FROM ContentVersion WHERE ContentDocumentId IN:cdIds]) {
+					curAttachments.add(new StaticResource(Name = cv.PathOnClient, Body = cv.VersionData));
+				}
+			system.debug('CONTENT ' + curAttachments);
+	
+			List<Messaging.EmailFileAttachment> attachments = new List<Messaging.EmailFileAttachment>();
+	
+			if (curAttachments != null) {
+				for (SObject file : curAttachments) {
+					Messaging.EmailFileAttachment efa = new Messaging.EmailFileAttachment();
+					efa.setFileName((String) file.get('Name'));
+					efa.setBody((BLOB) file.get('Body'));
+					efa.setContentType((String) file.get('ContentType'));
+					attachments.add(efa);
+				}
+				mail.setFileAttachments(attachments);
+			} 
+			return mail;
+        
+        
+        
+    }
+
+        
+        
+}
